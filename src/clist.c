@@ -1,0 +1,233 @@
+#include <clist.h>
+
+int clist_init(struct clist *list, int (*match)(const void *key1, const void* key2), void (*destroy)(void *data), unsigned int sorted)
+{
+  list->sorted = sorted;
+  list->destroy = destroy;
+  list->match = match;
+  list->size = 0;
+  list->head = NULL;
+  list->tail = NULL;
+  return CLIST_TRUE;
+}
+
+int __clist_get_node_by_id(struct clist *list, struct clist_node **node, int id)
+{
+  if (list->size == 0 || list->head == NULL)
+  {
+    *node = NULL;
+    return CLIST_ENOTFOUND;
+  }
+  if (id == -1)
+  {
+    *node = list->tail;
+    return CLIST_TRUE;
+  }
+  if (id == 0)
+  {
+    *node = list->head;
+    return CLIST_TRUE;
+  }
+
+  int i;
+  struct clist_node * t = list->head;
+  for (i = 0; i < id; i++)
+  {
+    if (t->next == NULL)
+    {
+      *node = NULL;
+      return CLIST_ENOTFOUND;
+    }
+    t = t->next;
+  }
+  *node = t;
+  return CLIST_TRUE;
+}
+
+
+int clist_get_by_id(struct clist *list, void **data, int id)
+{
+  struct clist_node * node;
+  *data = NULL;
+
+  
+  int ret = __clist_get_node_by_id(list, &node, id);
+  if (ret == CLIST_TRUE)
+  {
+    if (node != NULL)
+      *data = node->data;
+  }
+  return ret;
+}
+
+int clist_destroy(struct clist *list)
+{
+  return CLIST_TRUE;
+}
+
+int __clist_start_list(struct clist *list, void *data)
+{
+  if (list->size==0)
+  {
+    void *td = malloc(sizeof(struct clist_node));
+    if (td==NULL)
+      return CLIST_FALSE;
+    list->head = (struct clist_node*)td;
+    list->head->next = (struct clist_node*)NULL;
+    list->head->prev = (struct clist_node*)NULL;
+    list->head->data = data;
+    list->size = 1;
+    list->tail = list->head;
+    return CLIST_TRUE;
+  }
+  return CLIST_ENOTEMPTY;
+}
+
+int clist_append(struct clist *list, void *data)
+{
+  if (__clist_start_list(list, data) == CLIST_TRUE)
+    return CLIST_TRUE;
+
+  void* td = malloc(sizeof(struct clist_node));
+  if (td==NULL)
+    return CLIST_FALSE;
+  struct clist_node *n = (struct clist_node*)td;
+  list->tail->next = n;
+  n->next = (struct clist_node*)NULL;
+  n->prev = list->tail;
+  n->data = data;
+  list->size ++;
+  list->tail = n;
+  
+  return CLIST_TRUE;
+}
+
+int clist_pop(struct clist *list)
+{
+  if (list->tail == NULL || list->size == 0)
+    return CLIST_FALSE;
+  struct clist_node * prev = list->tail->prev;
+  void *data = list->tail->data;
+  list->destroy(data);
+  free(list->tail);
+  list->tail = prev;
+  list->size--;
+  return CLIST_TRUE;
+}
+
+int clist_remove(struct clist *list, void **data, int id)
+{
+  struct clist_node * node;
+  int ret = __clist_get_node_by_id(list, &node, id);
+  if (ret != CLIST_TRUE)
+  {
+    return CLIST_FALSE;
+  }
+  *data = NULL;
+  struct clist_node *prev = node->prev;
+  struct clist_node *next = node->next;
+  if (prev!=NULL) {
+    prev->next = next;
+  } else {
+    list->head = next;
+  }
+  if (next!=NULL) {
+    next->prev = prev;
+  } else {
+    list->tail = prev;
+  }
+
+
+  list->destroy(node->data);
+  node->data = NULL;
+  free(node);
+  list->size--;
+  return CLIST_TRUE;
+}
+
+int clist_insert(struct clist *list, void *data, int id)
+{
+  if (__clist_start_list(list, data) == CLIST_TRUE)
+    return CLIST_TRUE;
+
+  if (id==list->size)
+    return clist_append(list, data);
+
+  struct clist_node *node;
+  int ret = __clist_get_node_by_id(list, &node, id);
+  if (ret!=CLIST_TRUE)
+  {
+    return CLIST_FALSE;
+  }
+  /* struct clist_node *prev = node->prev; */
+  /* struct clist_node *next = node->next; */
+
+  void* td = malloc(sizeof(struct clist_node));
+  if (td==NULL)
+    return CLIST_FALSE;
+  struct clist_node *n = (struct clist_node*)td;
+  if (node->prev!=NULL)
+    node->prev->next = n;
+  n->prev = node->prev;
+  n->next = node;
+  n->data = data;
+  node->prev = n;
+  list->size ++;
+  if (id==0)
+    list->head = n;
+  else if (id==-1)
+    list->tail = n;
+  return CLIST_TRUE;
+}
+
+int clist_get_iterator(struct clist *list, struct clist_iterator *it, int start)
+{
+  struct clist_node *n = NULL;
+  it->n = NULL;
+  int ret = __clist_get_node_by_id(list, &n, start);
+  if (ret == CLIST_TRUE)
+  {
+    if (n != NULL)
+    {
+      it->n = n;
+      it->id = start;
+    }
+    else
+      ret = CLIST_FALSE;
+  }
+  return ret;
+}
+
+int clist_iterate(struct clist *list, struct clist_iterator *it, void **data, int step)
+{
+  if (it->n == NULL)
+    return CLIST_FALSE;
+
+  int i = 0;
+  struct clist_node *n = it->n;
+  if (step>0)
+  {
+    for (i=0; i<step; i++)
+    {
+      if (n->next==NULL)
+        return CLIST_FALSE;
+      n = n->next;
+    }
+  }
+  else if (step<0)
+  {
+    for (i=0; i>step; i--)
+    {
+      if (n->prev==NULL)
+        return CLIST_FALSE;
+      n = n->prev;
+    }
+  }
+  it->n = n;
+  it->id+=step;
+  if ((it->n != NULL) && (data != NULL))
+    *data = it->n->data;
+  else if (it->n == NULL)
+    return CLIST_FALSE;
+  return CLIST_TRUE;
+}

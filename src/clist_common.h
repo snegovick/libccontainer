@@ -1,0 +1,4 @@
+#define CLIST_TRUE 1
+#define CLIST_FALSE 0
+#define CLIST_ENOTFOUND -1
+#define CLIST_ENOTEMPTY -2

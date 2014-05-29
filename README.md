@@ -10,3 +10,13 @@ Setup
     bash ./bootstrap
     ./configure --prefix=/usr # if you dont like autotools default (/usr/local)
     make; make install
+
+Whats inside
+============
+
+Well tested:
+  * Linked list implementation
+  * Hash table implementation
+
+Not so well tested:
+  * Dynamic storage (malloc/free inside statically allocated buffer)

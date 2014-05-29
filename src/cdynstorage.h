@@ -8,6 +8,7 @@
 #define NULL ((void *)0)
 #endif
 
+
 struct cdynstorage {
   uint8_t *storage;
   unsigned int storage_size;
@@ -21,6 +22,8 @@ struct cds_block_header {
   unsigned int next_ptr;
   unsigned int prev_ptr;
 };
+
+#define get_bh(i) ((struct cds_block_header *)&cds->storage[i])
 
 #define UINT_MAX ((unsigned int)(-1))
 #define H_SZ sizeof(struct cds_block_header)
@@ -69,13 +72,13 @@ int __cds_find_prev_free(struct cdynstorage *cds, unsigned int offset, struct cd
   struct cds_block_header *bh;
 
   while (1) {
-    bh = (struct cds_block_header *)&cds->storage[p];
+    bh = get_bh(p);
     if (p > offset) {
       p = bh->prev_ptr;
       if (p == UINT_MAX) {
         return CERR_ENOTFOUND;
       }
-      bh = (struct cds_block_header *)&cds->storage[p];
+      bh = get_bh(p);
       *block_offset = p;
       *cbh = bh;
       return CERR_OK;
@@ -96,13 +99,13 @@ int __cds_find_prev_used(struct cdynstorage *cds, unsigned int offset, struct cd
   struct cds_block_header *bh;
 
   while (1) {
-    bh = (struct cds_block_header *)&cds->storage[p];
+    bh = get_bh(p);
     if (p > offset) {
       p = bh->prev_ptr;
       if (p == UINT_MAX) {
         return CERR_ENOTFOUND;
       }
-      bh = (struct cds_block_header *)&cds->storage[p];
+      bh = get_bh(p);
       *block_offset = p;
       *cbh = bh;
       return CERR_OK;
@@ -122,7 +125,7 @@ int __cds_find_matching_used(struct cdynstorage *cds, unsigned int offset, struc
   struct cds_block_header *bh;
   
   while (1) {
-    bh = (struct cds_block_header *)&cds->storage[p];
+    bh = get_bh(p);
     if ((p + bh->size) >= offset) {
       *cbh = bh;
       *block_offset = p;
@@ -131,10 +134,21 @@ int __cds_find_matching_used(struct cdynstorage *cds, unsigned int offset, struc
       return CERR_ENOTFOUND;
     } else {
       p = bh->next_ptr;
-      bh = (struct cds_block_header *)&cds->storage[p];
+      bh = get_bh(p);
     }
   }
   return CERR_GENERAL_ERROR;
+}
+
+void __swap_ptrs(struct cdynstorage *cds, unsigned int next_id, unsigned int prev_id, unsigned int prev_next, unsigned int next_prev) {
+  if (next_id != UINT_MAX) {
+    struct cds_block_header *nh = get_bh(next_id);
+    nh->prev_ptr = next_prev;
+  }
+  if (prev_id != UINT_MAX) {
+    struct cds_block_header *ph = get_bh(prev_id);
+    ph->next_ptr = prev_next;
+  }
 }
 
 void *cds_alloc(struct cdynstorage *cds, unsigned int size) {
@@ -154,28 +168,14 @@ void *cds_alloc(struct cdynstorage *cds, unsigned int size) {
   unsigned int old_size = cbh->size;
   if ((cbh->size - size) <= ATTACH_THRESHOLD) {
     size = cbh->size;
-    if (cbh->prev_ptr != UINT_MAX) {
-      struct cds_block_header *ph = (struct cds_block_header *)&cds->storage[cbh->prev_ptr];
-      ph->next_ptr = cbh->next_ptr;
-    }
-    if (cbh->next_ptr != UINT_MAX) {
-      struct cds_block_header *nh = (struct cds_block_header *)&cds->storage[cbh->next_ptr];
-      nh->prev_ptr = cbh->prev_ptr;
-    }
+    __swap_ptrs(cds, cbh->next_ptr, cbh->prev_ptr, cbh->next_ptr, cbh->prev_ptr);
     q = cbh->next_ptr;
   } else {
     q = p + size;
     struct cds_block_header *bh = (struct cds_block_header *)&cds->storage[q];
     bh->next_ptr = cbh->next_ptr;
     bh->prev_ptr = cbh->prev_ptr;
-    if (bh->prev_ptr != UINT_MAX) {
-      struct cds_block_header *ph = (struct cds_block_header *)&cds->storage[cbh->prev_ptr];
-      ph->next_ptr = q;
-    }
-    if (bh->next_ptr != UINT_MAX) {
-      struct cds_block_header *nh = (struct cds_block_header *)&cds->storage[cbh->next_ptr];
-      nh->prev_ptr = q;
-    }
+    __swap_ptrs(cds, bh->next_ptr, bh->prev_ptr, q, q);
     bh->size = old_size-size;
   }
   
@@ -194,7 +194,7 @@ void *cds_alloc(struct cdynstorage *cds, unsigned int size) {
     ret = __cds_find_prev_used(cds, p, &used_prev, &block_offset);
     if (ret == CERR_ENOTFOUND) {
       block_offset = cds->used;
-      struct cds_block_header *first_used = (struct cds_block_header *)&cds->storage[block_offset];
+      struct cds_block_header *first_used = get_bh(block_offset);
       first_used->prev_ptr = p;
       used_cbh->next_ptr = block_offset;
       used_cbh->prev_ptr = UINT_MAX;
@@ -204,7 +204,7 @@ void *cds_alloc(struct cdynstorage *cds, unsigned int size) {
     } else {
       used_cbh->prev_ptr = block_offset;
       if (used_prev->next_ptr != UINT_MAX) {
-        struct cds_block_header *used_next = (struct cds_block_header *)&cds->storage[used_prev->next_ptr];
+        struct cds_block_header *used_next = get_bh(used_prev->next_ptr);
         used_next->prev_ptr = p;
       }
       used_cbh->next_ptr = used_prev->next_ptr;
@@ -233,16 +233,10 @@ void cds_free(struct cdynstorage *cds, void *ptr) {
   if (ret!=CERR_OK) {
     return;
   } else {
-    if (bh->prev_ptr != UINT_MAX) {
-      struct cds_block_header *prev = (struct cds_block_header *)&cds->storage[bh->prev_ptr];
-      prev->next_ptr = bh->next_ptr;
-    } else {
+    if (bh->prev_ptr == UINT_MAX) {
       cds->used = bh->next_ptr;
     }
-    if (bh->next_ptr != UINT_MAX) {
-      struct cds_block_header *next = (struct cds_block_header *)&cds->storage[bh->next_ptr];
-      next->prev_ptr = bh->prev_ptr;      
-    }
+    __swap_ptrs(cds, bh->next_ptr, bh->prev_ptr, bh->next_ptr, bh->prev_ptr);
   }
 
   offset = p;
@@ -258,13 +252,13 @@ void cds_free(struct cdynstorage *cds, void *ptr) {
   ret = __cds_find_prev_free(cds, offset, &bh, &p);
   //assume that free memory is somewhere ahead
   if (ret == CERR_ENOTFOUND) {
-    struct cds_block_header *next = (struct cds_block_header *)&cds->storage[cds->avail];
+    struct cds_block_header *next = get_bh(cds->avail);
     bh = (struct cds_block_header *)&cds->storage[offset];
     if (offset+size==cds->avail) {
       bh->next_ptr = next->next_ptr;
       bh->prev_ptr = UINT_MAX;
       if (bh->next_ptr != UINT_MAX) {
-        struct cds_block_header *nextnext = (struct cds_block_header *)&cds->storage[bh->next_ptr];
+        struct cds_block_header *nextnext = get_bh(bh->next_ptr);
         nextnext->prev_ptr = offset;
       }
       bh->size = size + next->size;
@@ -284,37 +278,23 @@ void cds_free(struct cdynstorage *cds, void *ptr) {
     bh->size = bh->size + size;
     if (bh->next_ptr != UINT_MAX) {
       if (bh->next_ptr == (p+bh->size)) {
-        struct cds_block_header *next = (struct cds_block_header *)&cds->storage[bh->next_ptr];
+        struct cds_block_header *next = get_bh(bh->next_ptr);
         bh->next_ptr = next->next_ptr;
         bh->size = bh->size + next->size;
       }
     }
   } else if ((offset+size) == bh->next_ptr) {
-    struct cds_block_header *cbh = (struct cds_block_header *)&cds->storage[offset];
-    struct cds_block_header *next = (struct cds_block_header *)&cds->storage[bh->next_ptr];
+    struct cds_block_header *cbh = get_bh(offset);
+    struct cds_block_header *next = get_bh(bh->next_ptr);
     cbh->next_ptr = next->next_ptr;
     cbh->prev_ptr = next->prev_ptr;
-    if (cbh->next_ptr != UINT_MAX) {
-      struct cds_block_header *nextnext = (struct cds_block_header *)&cds->storage[cbh->next_ptr];
-      nextnext->prev_ptr = offset;
-    }
-    if (cbh->prev_ptr != UINT_MAX) {
-      struct cds_block_header *prevprev = (struct cds_block_header *)&cds->storage[cbh->prev_ptr];
-      prevprev->next_ptr = offset;
-    }
+    __swap_ptrs(cds, cbh->next_ptr, cbh->prev_ptr, offset, offset);
     cbh->size = size + next->size;
   } else {
-    struct cds_block_header *cbh = (struct cds_block_header *)&cds->storage[offset];
+    struct cds_block_header *cbh = get_bh(offset);
     cbh->next_ptr = bh->next_ptr;
     cbh->prev_ptr = p;
-    if (cbh->next_ptr != UINT_MAX) {
-      struct cds_block_header *nextnext = (struct cds_block_header *)&cds->storage[cbh->next_ptr];
-      nextnext->prev_ptr = offset;
-    }
-    if (cbh->prev_ptr != UINT_MAX) {
-      struct cds_block_header *prevprev = (struct cds_block_header *)&cds->storage[cbh->prev_ptr];
-      prevprev->next_ptr = offset;
-    }
+    __swap_ptrs(cds, cbh->next_ptr, cbh->prev_ptr, offset, offset);
     cbh->size = size;
   }
   cds->n_ptrs_allocated --;

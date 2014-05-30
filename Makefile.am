@@ -1,6 +1,12 @@
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = src tests
+if BUILD_TESTS
+EXTRA=tests
+else
+EXTRA=
+endif
+
+SUBDIRS = src $(EXTRA)
 
 TESTS = tests/clisttest tests/chashtest tests/cdstest tests/circbuftest
 

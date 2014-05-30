@@ -20,3 +20,4 @@ Well tested:
 
 Not so well tested:
   * Dynamic storage (malloc/free inside statically allocated buffer)
+  * Circular buffer

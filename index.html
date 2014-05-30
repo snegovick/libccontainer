@@ -31,7 +31,7 @@
           <h1>
 <a name="description" class="anchor" href="#description"><span class="octicon octicon-link"></span></a>Description</h1>
 
-<p>Why do these esoteric languages like C++ or Java or Python have cool libraries with lots of readily available implementations of data structures like Boost or STL or whatever and such a major language like C has just few such libs ? This projects aim is to change this situation. Hope you will find something useful.</p>
+<p>Why do these esoteric and hardly-ever-used languages like C++ or Java or Python have cool libraries with lots of readily available implementations of data structures like Boost or STL or whatever and such a major language like C has just few such libs ? This projects aim is to change this situation. I hope you will find something useful here, and feel free to contribute!</p>
 
 <h1>
 <a name="setup" class="anchor" href="#setup"><span class="octicon octicon-link"></span></a>Setup</h1>
@@ -55,7 +55,16 @@ make; make install
 <ul>
 <li>Dynamic storage (malloc/free inside statically allocated buffer)</li>
 <li>Circular buffer</li>
-</ul>
+</ul><h1>
+<a name="cross-compiling" class="anchor" href="#cross-compiling"><span class="octicon octicon-link"></span></a>Cross-compiling</h1>
+
+<p>Cross-compiling was tested on Ubuntu 14.04</p>
+
+<pre><code>cd libccontainer
+bash ./bootstrap
+./configure --build=arm-none-eabi --disable-tests # disable tests for cross-compiling
+make
+</code></pre>
         </section>
 
         <aside id="sidebar">

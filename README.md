@@ -14,6 +14,8 @@ Setup
 Whats inside
 ============
 
+Usage examples: http://uprojects.org/?page_id=17
+
 Well tested:
   * Linked list implementation
   * Hash table implementation

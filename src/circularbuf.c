@@ -18,7 +18,7 @@ unsigned int cb_get_allocated_space(struct circular_buffer *cb) {
   return (cb->storage_size-cb->free_space);
 }
 
-int cb_push(struct circular_buffer *cb, uint8_t *data, unsigned int size) {
+int cb_push(struct circular_buffer *cb, const uint8_t *data, unsigned int size) {
   if (cb->free_space<size) {
     return CERR_ENOMEM;
   }
@@ -56,4 +56,37 @@ int cb_pop(struct circular_buffer *cb, uint8_t *data, unsigned int size) {
   }
   cb->free_space += size;
   return size;
+}
+
+int cb_get_data(struct circular_buffer *cb, unsigned int start, unsigned int end, uint8_t *data, unsigned int data_buffer_size, unsigned int *acquired_size) {
+  //check whether start and end lie between top and bottom
+  if (cb->top<cb->bottom) {
+    if (!((start>=cb->top) && (start<=cb->bottom) && ((end>=cb->top) && (end<=cb->bottom)))) {
+      return CERR_ENOTFOUND;
+    }
+  } else if (cb->top>cb->bottom) {
+    if (((start>cb->bottom) && (end<cb->top)) || ((end>cb->bottom) && (end<cb->top))) {
+      return CERR_ENOTFOUND;
+    }
+  }
+  
+  int sz = 0;
+  if (end>start) {
+    sz = end-start;
+    if (sz>data_buffer_size) {
+      return CERR_ENOMEM;
+    }
+    memcpy(data, cb->storage+start, sz);
+  } else if (end<start){
+    sz = cb->storage_size-start;
+    if ((sz+end)>data_buffer_size) {
+      return CERR_ENOMEM;
+    }
+    memcpy(data, cb->storage+start, sz);
+    memcpy(data+sz, cb->storage, end);
+    sz+=end;
+  }
+  cb->top = end;
+  *acquired_size = sz;
+  return CERR_OK;
 }

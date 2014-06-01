@@ -46,7 +46,7 @@ int cb_pop(struct circular_buffer *cb, uint8_t *data, unsigned int size) {
     size = allocated_size;
   }
 
-  unsigned int sz = cb->storage_size-cb->top;
+  unsigned int sz = cb->storage_size-cb->top-1;
   if (sz < size) {
     memcpy(data, cb->storage+cb->top, sz);
     memcpy(data+sz, cb->storage, size-sz);

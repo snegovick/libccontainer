@@ -22,7 +22,7 @@ int cb_push(struct circular_buffer *cb, const uint8_t *data, unsigned int size) 
   if (cb->free_space<size) {
     return CERR_ENOMEM;
   }
-  unsigned int sz = (cb->storage_size - cb->bottom);
+  unsigned int sz = (cb->storage_size - cb->bottom-1);
   if (sz < size) {
     memcpy(cb->storage+cb->bottom, data, sz);
     memcpy(cb->storage, data+sz, size-sz);
@@ -32,6 +32,7 @@ int cb_push(struct circular_buffer *cb, const uint8_t *data, unsigned int size) 
     cb->bottom += size;
   }
   cb->free_space -= size;
+  printf("free space: %i\r\n", cb->free_space);
   return size;
 }
 
@@ -65,7 +66,7 @@ int cb_get_data(struct circular_buffer *cb, unsigned int start, unsigned int end
       return CERR_ENOTFOUND;
     }
   } else if (cb->top>cb->bottom) {
-    if (((start>cb->bottom) && (end<cb->top)) || ((end>cb->bottom) && (end<cb->top))) {
+    if (((start>cb->bottom) && (start<cb->top)) || ((end>cb->bottom) && (end<cb->top))) {
       return CERR_ENOTFOUND;
     }
   }
@@ -87,6 +88,20 @@ int cb_get_data(struct circular_buffer *cb, unsigned int start, unsigned int end
     sz+=end;
   }
   cb->top = end;
+  if (cb->top<=cb->bottom) {
+    cb->free_space = cb->storage_size-(cb->bottom-cb->top);
+  } else {
+    cb->free_space = cb->top-cb->bottom;
+  }
+  printf("free space: %i\r\n", cb->free_space);
   *acquired_size = sz;
   return CERR_OK;
+}
+
+int cb_push_byte(struct circular_buffer *cb, uint8_t b) {
+  return cb_push(cb, &b, 1);
+}
+
+unsigned int cb_get_current_position(struct circular_buffer *cb) {
+  return cb->bottom;
 }

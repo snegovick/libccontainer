@@ -10,6 +10,11 @@ Setup
     bash ./bootstrap
     ./configure --prefix=/usr # if you dont like autotools default (/usr/local)
     make; make install
+    
+Examples
+========
+
+Usage examples: http://uprojects.org/libccontainer-usage/
 
 Whats inside
 ============

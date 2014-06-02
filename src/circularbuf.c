@@ -33,7 +33,7 @@ int cb_push(struct circular_buffer *cb, const uint8_t *data, unsigned int size) 
   }
   cb->free_space -= size;
   printf("free space: %i\r\n", cb->free_space);
-  return size;
+  return CERR_OK;
 }
 
 int cb_pop(struct circular_buffer *cb, uint8_t *data, unsigned int size) {
@@ -104,4 +104,11 @@ int cb_push_byte(struct circular_buffer *cb, uint8_t b) {
 
 unsigned int cb_get_current_position(struct circular_buffer *cb) {
   return cb->bottom;
+}
+
+int cb_recover(struct circular_buffer *cb) {
+  cb->top = 0;
+  cb->bottom = 0;
+  cb->free_space = cb->storage_size;
+  return CERR_OK;  
 }

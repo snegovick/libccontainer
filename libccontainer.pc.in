@@ -1,0 +1,11 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+Name: libccontainer
+Description: Collection of data structures for C
+URL: http://libccontainer.uprojects.org
+Version: @VERSION@
+Requires: 
+Libs: -L@libdir@ -lccontainer
+Cflags: -I@includedir@

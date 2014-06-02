@@ -20,5 +20,6 @@ int cb_push_byte(struct circular_buffer *cb, uint8_t b);
 int cb_pop(struct circular_buffer *cb, uint8_t *data, unsigned int size);
 unsigned int cb_get_current_position(struct circular_buffer *cb);
 int cb_get_data(struct circular_buffer *cb, unsigned int start, unsigned int end, uint8_t *data, unsigned int data_buffer_size, unsigned int *acquired_size);
+int cb_recover(struct circular_buffer *cb);
 
 #endif/*__CIRCBUF_H__*/

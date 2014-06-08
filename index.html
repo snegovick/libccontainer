@@ -29,23 +29,41 @@
       <div class="inner clearfix">
         <section id="main-content">
           <h1>
-<a name="description" class="anchor" href="#description"><span class="octicon octicon-link"></span></a>Description</h1>
+<a name="libccontainer" class="anchor" href="#libccontainer"><span class="octicon octicon-link"></span></a>libccontainer</h1>
 
-<p>Why do these esoteric and hardly-ever-used languages like C++ or Java or Python have cool libraries with lots of readily available implementations of data structures like Boost or STL or whatever and such a major language like C has just few such libs ? This projects aim is to change this situation. I hope you will find something useful here, and feel free to contribute!</p>
-
-<h1>
-<a name="examples" class="anchor" href="#examples"><span class="octicon octicon-link"></span></a>Examples</h1>
-
-<p>Examples can be found at this page: <a href="http://uprojects.org/libccontainer-usage/">http://uprojects.org/libccontainer-usage/</a></p>
+<p>Various data structures in plain c</p>
 
 <h1>
 <a name="setup" class="anchor" href="#setup"><span class="octicon octicon-link"></span></a>Setup</h1>
 
+<p>If you want ot use it in usual environment i.e. on your pc, then:</p>
+
 <pre><code>cd libccontainer
 bash ./bootstrap
-./configure --prefix=/usr # if you dont like autotools default (/usr/local)
+./configure
 make; make install
 </code></pre>
+
+<h1>
+<a name="examples" class="anchor" href="#examples"><span class="octicon octicon-link"></span></a>Examples</h1>
+
+<p>Usage examples: <a href="http://uprojects.org/libccontainer-usage/">http://uprojects.org/libccontainer-usage/</a></p>
+
+<h1>
+<a name="cross-compiling" class="anchor" href="#cross-compiling"><span class="octicon octicon-link"></span></a>Cross-compiling</h1>
+
+<p>For example to build this library for use with ChibiOS-RT:</p>
+
+<pre><code>cd libccontainer
+bash ./bootstrap
+CFLAGS="-mthumb -mcpu=cortex-m4 -fomit-frame-pointer -falign-functions=16 -ffunction-sections -fdata-sections -fno-common -Wall \
+-Wextra-Wstrict-prototypes -DCORTEX_USE_FPU=FALSE  -DTHUMB_PRESENT -mno-thumb-interwork -DTHUMB_NO_INTERWORKING" LDFLAGS="-mcpu=cortex-m4 \
+-fomit-frame-pointer -falign-functions=16 -ffunction-sections -fdata-sections -fno-common -nostartfiles -mthumb" ./configure \
+--prefix=${PREFIX}/usr --disable-tests --host=arm-none-eabi
+make; make install
+</code></pre>
+
+<p>Cross-compiling was tested on Ubuntu 14.04 with arm-none-eabi toolchain from Ubuntu repository.</p>
 
 <h1>
 <a name="whats-inside" class="anchor" href="#whats-inside"><span class="octicon octicon-link"></span></a>Whats inside</h1>
@@ -60,16 +78,7 @@ make; make install
 <ul>
 <li>Dynamic storage (malloc/free inside statically allocated buffer)</li>
 <li>Circular buffer</li>
-</ul><h1>
-<a name="cross-compiling" class="anchor" href="#cross-compiling"><span class="octicon octicon-link"></span></a>Cross-compiling</h1>
-
-<p>Cross-compiling was tested on Ubuntu 14.04</p>
-
-<pre><code>cd libccontainer
-bash ./bootstrap
-./configure --build=arm-none-eabi --disable-tests # disable tests for cross-compiling
-make
-</code></pre>
+</ul>
         </section>
 
         <aside id="sidebar">

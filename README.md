@@ -6,9 +6,21 @@ Various data structures in plain c
 Setup
 =====
 
+For example to build this library for use with ChibiOS-RT:
+
     cd libccontainer
     bash ./bootstrap
-    ./configure --prefix=/usr # if you dont like autotools default (/usr/local)
+    CFLAGS="-mthumb -mcpu=cortex-m4 -fomit-frame-pointer -falign-functions=16 -ffunction-sections -fdata-sections -fno-common -Wall \
+    -Wextra-Wstrict-prototypes -DCORTEX_USE_FPU=FALSE  -DTHUMB_PRESENT -mno-thumb-interwork -DTHUMB_NO_INTERWORKING" LDFLAGS="-mcpu=cortex-m4 \
+    -fomit-frame-pointer -falign-functions=16 -ffunction-sections -fdata-sections -fno-common -nostartfiles -mthumb" ./configure \
+    --prefix=${PREFIX}/usr --disable-tests --host=arm-none-eabi
+    make; make install
+    
+If you want ot use it in usual environment i.e. on your pc, then:
+
+    cd libccontainer
+    bash ./bootstrap
+    ./configure
     make; make install
     
 Examples

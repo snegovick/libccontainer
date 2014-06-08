@@ -32,7 +32,6 @@ int cb_push(struct circular_buffer *cb, const uint8_t *data, unsigned int size) 
     cb->bottom += size;
   }
   cb->free_space -= size;
-  printf("free space: %i\r\n", cb->free_space);
   return CERR_OK;
 }
 

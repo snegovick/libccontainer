@@ -3,7 +3,7 @@
 
 #include <clist_common.h>
 #include <stdlib.h>
-#include <memory.h>
+#include <string.h>
 
 struct clist_node;
 

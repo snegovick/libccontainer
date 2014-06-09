@@ -92,7 +92,6 @@ int cb_get_data(struct circular_buffer *cb, unsigned int start, unsigned int end
   } else {
     cb->free_space = cb->top-cb->bottom;
   }
-  printf("free space: %i\r\n", cb->free_space);
   *acquired_size = sz;
   return CERR_OK;
 }

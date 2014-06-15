@@ -1,4 +1,4 @@
-bin_PROGRAMS = clisttest chashtest cdstest circbuftest
+noinst_PROGRAMS = clisttest chashtest cdstest circbuftest
 clisttest_SOURCES = clist_tests.c
 clisttest_LDFLAGS = -lcunit -lm -L../src -lccontainer
 clisttest_CFLAGS = -I/usr/include -I../src

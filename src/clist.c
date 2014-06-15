@@ -13,7 +13,7 @@ int clist_init(struct clist *list, int (*match)(const void *key1, const void* ke
 
 int __clist_get_node_by_id(struct clist *list, struct clist_node **node, int id)
 {
-  if (list->size == 0 || list->head == NULL)
+  if ((abs(id)>list->size) || list->size == 0 || list->head == NULL)
   {
     *node = NULL;
     return CLIST_ENOTFOUND;
@@ -28,19 +28,34 @@ int __clist_get_node_by_id(struct clist *list, struct clist_node **node, int id)
     *node = list->head;
     return CLIST_TRUE;
   }
-
+  
   int i;
-  struct clist_node * t = list->head;
-  for (i = 0; i < id; i++)
-  {
-    if (t->next == NULL)
+  if (id > 0) {
+    struct clist_node * t = list->head;
+    for (i = 0; i < id; i++)
     {
-      *node = NULL;
-      return CLIST_ENOTFOUND;
+      if (t->next == NULL)
+      {
+        *node = NULL;
+        return CLIST_ENOTFOUND;
+      }
+      t = t->next;
     }
-    t = t->next;
+    *node = t;
+  } else {
+    struct clist_node * t = list->tail;
+    for (i = 0; i < abs(id); i++)
+    {
+      if (t->prev == NULL)
+      {
+        *node = NULL;
+        return CLIST_ENOTFOUND;
+      }
+      t = t->prev;
+    }
+    *node = t;
+    
   }
-  *node = t;
   return CLIST_TRUE;
 }
 

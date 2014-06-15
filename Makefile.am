@@ -1,7 +1,7 @@
 ACLOCAL_AMFLAGS = -I m4
 
 if BUILD_TESTS
-EXTRA=tests
+EXTRA=tests examples
 else
 EXTRA=
 endif

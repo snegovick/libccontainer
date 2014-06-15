@@ -38,7 +38,7 @@ AC_ARG_ENABLE([tests],
 
 AM_CONDITIONAL([BUILD_TESTS], [test "x$enable_tests" != "xno"])
 
-AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile libccontainer.pc])
+AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile examples/Makefile libccontainer.pc])
 
 AC_OUTPUT
 

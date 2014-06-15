@@ -232,6 +232,43 @@ int clist_iterate(struct clist *list, struct clist_iterator *it, void **data, in
   return CLIST_TRUE;
 }
 
+int clist_post_iterate(struct clist *list, struct clist_iterator *it, void **data, int step) {
+  if (it->n == NULL)
+    return CLIST_FALSE;
+
+
+  if ((it->n != NULL) && (data != NULL)) {
+    *data = it->n->data;
+  } else if (it->n == NULL) {
+    return CLIST_FALSE;
+  }
+
+  int i = 0;
+  struct clist_node *n = it->n;
+  if (step>0)
+  {
+    for (i=0; i<step; i++)
+    {
+      if (n->next==NULL)
+        return CLIST_FALSE;
+      n = n->next;
+    }
+  }
+  else if (step<0)
+  {
+    for (i=0; i>step; i--)
+    {
+      if (n->prev==NULL)
+        return CLIST_FALSE;
+      n = n->prev;
+    }
+  }
+  it->n = n;
+  it->id+=step;
+
+  return CLIST_TRUE;
+}
+
 void __swap_data(struct clist_node *n1, struct clist_node *n2) {
   void *data = n1->data;
   n1->data = n2->data;

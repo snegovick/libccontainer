@@ -95,6 +95,61 @@ void test_clist_append_insert_append(void)
 
 }
 
+void test_clist_sort(void)
+{
+  int items[] = {5, 10, 23, 12, 1,
+                 91, 32, 12, 3, 2};
+#define NUM_ELEMENTS 10
+  struct clist list;
+  int ret = clist_init(&list, match_function, free_destroy_function, CLIST_UNSORTED);
+  struct key *k = NULL;
+  int ctr = 0;
+  for (; ctr<NUM_ELEMENTS; ctr++)
+  {
+    k = (struct key*)malloc(sizeof(struct key));
+    k->id = items[ctr];
+    printf("adding id: %i\n", k->id);
+    ret = clist_append(&list, (void *)k);
+    CU_ASSERT(ret==CLIST_TRUE);
+  }
+
+/*traverse list before sort*/
+  struct clist_iterator *it = malloc(sizeof(struct clist_iterator));
+  ret = clist_get_iterator(&list, it, 0);
+  CU_ASSERT(ret==CLIST_TRUE);
+
+  ret = clist_iterate(&list, it, (void **)&k, 0);
+  CU_ASSERT(ret==CLIST_TRUE);
+  ctr = 0;
+  do
+  {
+    printf("k->id: %i\n", k->id);
+    ctr ++;
+  } while (clist_iterate(&list, it, (void **)&k, 1)==CLIST_TRUE);
+  CU_ASSERT(ctr==NUM_ELEMENTS);
+  
+  clist_qsort(&list, ASCENDING);
+
+/*traverse list after sort*/
+  ret = clist_get_iterator(&list, it, 0);
+  CU_ASSERT(ret==CLIST_TRUE);
+  ret = clist_iterate(&list, it, (void **)&k, 0);
+  CU_ASSERT(ret==CLIST_TRUE);
+  ctr = 0;
+  int prev = k->id;;
+  do
+  {
+    printf("k->id: %i, prev: %i\n", k->id, prev);
+    CU_ASSERT(prev<=k->id);
+    prev = k->id;
+    ctr ++;
+  } while (clist_iterate(&list, it, (void **)&k, 1)==CLIST_TRUE);
+  CU_ASSERT(ctr==NUM_ELEMENTS);
+  free(it);
+  
+  clist_destroy(&list);
+}
+
 void test_clist_iterator(void)
 {
 #define NUM_ELEMENTS 10
@@ -383,6 +438,12 @@ int main()
   }
 
   if (NULL == CU_ADD_TEST(pSuite,  test_clist_append_insert_append))
+  {
+    CU_cleanup_registry();
+    return CU_get_error();
+  }
+
+  if (NULL == CU_ADD_TEST(pSuite,  test_clist_sort))
   {
     CU_cleanup_registry();
     return CU_get_error();

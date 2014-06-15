@@ -33,6 +33,11 @@ struct clist_iterator
   int id;
 };
 
+enum sort_order {
+  ASCENDING,
+  DESCENDIN
+};
+
 #define CLIST_SORTED 1
 #define CLIST_UNSORTED 0
 

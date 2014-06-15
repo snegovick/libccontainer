@@ -231,3 +231,67 @@ int clist_iterate(struct clist *list, struct clist_iterator *it, void **data, in
     return CLIST_FALSE;
   return CLIST_TRUE;
 }
+
+void __swap_data(struct clist_node *n1, struct clist_node *n2) {
+  void *data = n1->data;
+  n1->data = n2->data;
+  n2->data = data;
+}
+
+void __qs_subproc(struct clist *list, int first, int last) {
+  if (first>=last) {
+    return;
+  }
+  int x_pos = (first+last)/2;
+  struct clist_node *x;
+  struct clist_node *f;
+  struct clist_node *f_node;
+  struct clist_node *l;
+  int i = first;
+  int j = last;
+  if (__clist_get_node_by_id(list, &f, first) != CLIST_TRUE) {
+    return;
+  }
+  if (__clist_get_node_by_id(list, &l, last) != CLIST_TRUE) {
+    return;
+  }
+  if (__clist_get_node_by_id(list, &x, x_pos) != CLIST_TRUE) {
+    return;
+  }
+
+  f_node = f;
+  __swap_data(f, x);
+  x = f;
+  f = f->next;
+  i++;
+  
+  while (i <= j) {
+    while (list->match(l->data, x->data) == 1) {
+      j --;
+      l = l->prev;
+    }
+
+    while ((i<=j) && (list->match(f->data, x->data) == -1)) {
+      i ++;
+      f = f->next;
+    }
+
+
+    if (i <= j) {
+      __swap_data(f, l);
+      i ++;
+      j --;
+      f = f->next;
+      l = l->prev;
+    }
+
+  }
+  __swap_data(f_node, l);  
+  __qs_subproc(list, first, j-1);
+  __qs_subproc(list, j+1, last);
+}
+
+int clist_qsort(struct clist *list, enum sort_order order) {
+  __qs_subproc(list, 0, list->size - 1);
+  return CLIST_TRUE;
+}

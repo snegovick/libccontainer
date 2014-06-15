@@ -50,5 +50,7 @@ int clist_remove(struct clist *list, void **data, int id);
 int clist_insert(struct clist *list, void *data, int id);
 int clist_get_iterator(struct clist *list, struct clist_iterator *it, int start);
 int clist_iterate(struct clist *list, struct clist_iterator *it, void **data, int step);
+int clist_post_iterate(struct clist *list, struct clist_iterator *it, void **data, int step);
+int clist_qsort(struct clist *list, enum sort_order order);
 
 #endif/*__CLIST_H__*/

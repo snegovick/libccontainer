@@ -313,7 +313,6 @@ void __qs_subproc(struct clist *list, int first, int last) {
       f = f->next;
     }
 
-
     if (i <= j) {
       __swap_data(f, l);
       i ++;
@@ -321,7 +320,6 @@ void __qs_subproc(struct clist *list, int first, int last) {
       f = f->next;
       l = l->prev;
     }
-
   }
   __swap_data(f_node, l);  
   __qs_subproc(list, first, j-1);

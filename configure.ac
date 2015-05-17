@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
 
-AC_INIT([libccontainer], [1.0.1], [snegovick@gmail.com])
+AC_INIT([libccontainer], [1.0.1], [snegovick@uprojects.org])
 
 AC_CONFIG_AUX_DIR([./config])
 AC_CONFIG_MACRO_DIR([m4])
@@ -27,8 +27,6 @@ else
     AC_DEFINE([NDEBUG],[],[No-debug Mode])
     AM_CFLAGS="$AM_CFLAGS -O3"
 fi
-
-PKG_CHECK_MODULES(CUNIT, cunit >= 1.0.1)
 
 AC_PROG_CC
 AC_PROG_LIBTOOL

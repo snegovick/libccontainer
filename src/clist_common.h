@@ -10,3 +10,10 @@
 #define CERR_ENOMEM -3
 #define CERR_NOENTRIES -4
 
+#ifndef clist_malloc
+#define clist_malloc malloc
+#endif
+
+#ifndef clist_free
+#define clist_free free
+#endif

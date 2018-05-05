@@ -84,7 +84,7 @@ int __clist_start_list(struct clist *list, void *data)
 {
   if (list->size==0)
   {
-    void *td = malloc(sizeof(struct clist_node));
+    void *td = clist_malloc(sizeof(struct clist_node));
     if (td==NULL)
       return CLIST_FALSE;
     list->head = (struct clist_node*)td;
@@ -103,7 +103,7 @@ int clist_append(struct clist *list, void *data)
   if (__clist_start_list(list, data) == CLIST_TRUE)
     return CLIST_TRUE;
 
-  void* td = malloc(sizeof(struct clist_node));
+  void* td = clist_malloc(sizeof(struct clist_node));
   if (td==NULL)
     return CLIST_FALSE;
   struct clist_node *n = (struct clist_node*)td;
@@ -124,7 +124,7 @@ int clist_pop(struct clist *list)
   struct clist_node * prev = list->tail->prev;
   void *data = list->tail->data;
   list->destroy(data);
-  free(list->tail);
+  clist_free(list->tail);
   list->tail = prev;
   list->size--;
   return CLIST_TRUE;
@@ -155,7 +155,7 @@ int clist_remove(struct clist *list, void **data, int id)
 
   list->destroy(node->data);
   node->data = NULL;
-  free(node);
+  clist_free(node);
   list->size--;
   return CLIST_TRUE;
 }
@@ -177,7 +177,7 @@ int clist_insert(struct clist *list, void *data, int id)
   /* struct clist_node *prev = node->prev; */
   /* struct clist_node *next = node->next; */
 
-  void* td = malloc(sizeof(struct clist_node));
+  void* td = clist_malloc(sizeof(struct clist_node));
   if (td==NULL)
     return CLIST_FALSE;
   struct clist_node *n = (struct clist_node*)td;

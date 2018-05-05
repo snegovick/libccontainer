@@ -28,16 +28,48 @@ else
     AM_CFLAGS="$AM_CFLAGS -O3"
 fi
 
+AC_MSG_CHECKING([whether to build with tests])
+AC_ARG_ENABLE([tests],
+    [AS_HELP_STRING([--enable-tests],
+        [enable tests (def=no)])],
+    [testit="$enableval"],
+    [testit=no])
+AC_MSG_RESULT([$testit])
+
+AC_CHECK_HEADER([CUnit/CUnit.h],
+   [
+      CUNIT_CFLAGS="$CFLAGS"
+      AC_CHECK_LIB([cunit],
+         [CU_initialize_registry],
+         [CUNIT_LDFLAGS="$LDFLAGS -lcunit" found_cunit="yes"],
+         [found_cunit="no"]
+      )
+   ],
+   [
+      found_cunit="no"
+   ]
+)
+
+if test x"$testit" = x"yes"; then
+   # Run the header/link tests
+   if test x"found_cunit" = x"yes"; then
+      CUNIT_STATUS="enabled"
+   else
+      CUNIT_LDFLAGS=""
+      CUNIT_CFLAGS=""
+      CUNIT_STATUS="disabled"
+   fi
+fi
+
 AC_PROG_CC
 AC_PROG_LIBTOOL
 
-dnl default-enabled tests feature
-AC_ARG_ENABLE([tests],
-    AS_HELP_STRING([--disable-tests], [Disable tests building]))
+if test "x$testit" == "xyes" && test "x$found_cunit" == "xno"; then
+   AC_MSG_ERROR([tests are enabled, but CUnit is not found], [-1])
+fi
 
-AM_CONDITIONAL([BUILD_TESTS], [test "x$enable_tests" != "xno"])
+AM_CONDITIONAL([BUILD_TESTS], [test "x$testit" != "xno" && test "x$found_cunit" != "xno"])
 
 AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile examples/Makefile libccontainer.pc])
 
 AC_OUTPUT
-

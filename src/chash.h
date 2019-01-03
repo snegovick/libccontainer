@@ -11,7 +11,7 @@
 
 struct chash_table
 {
-  int buckets;
+  size_t buckets;
   int (*h)(const void *key, int size);
   int (*match)(const void *key1, const void *key2);
   void (*destroy)(void *data);

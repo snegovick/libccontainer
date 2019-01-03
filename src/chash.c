@@ -2,7 +2,7 @@
 
 int chash_init(struct chash_table *table, unsigned int table_size, int (*h)(const void *key, int table_size), int(*match)(const void *key1, const void *key2), void (*destroy)(void *data))
 {
-  int i;
+  unsigned int i;
   table->table = (struct clist*)malloc(sizeof(struct clist)*table_size);
 
   for (i = 0; i < table_size; i++)
@@ -20,7 +20,7 @@ int chash_init(struct chash_table *table, unsigned int table_size, int (*h)(cons
 
 int chash_destroy(struct chash_table *table)
 {
-  int i;
+  unsigned int i;
   for (i = 0; i < table->buckets; i++)
   {
     clist_destroy(&table->table[i]);

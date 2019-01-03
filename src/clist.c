@@ -77,6 +77,7 @@ int clist_get_by_id(struct clist *list, void **data, int id)
 
 int clist_destroy(struct clist *list)
 {
+  (void)list;
   return CLIST_TRUE;
 }
 
@@ -165,7 +166,7 @@ int clist_insert(struct clist *list, void *data, int id)
   if (__clist_start_list(list, data) == CLIST_TRUE)
     return CLIST_TRUE;
 
-  if (id==list->size)
+  if (id==(int)list->size)
     return clist_append(list, data);
 
   struct clist_node *node;
@@ -215,6 +216,7 @@ int clist_get_iterator(struct clist *list, struct clist_iterator *it, int start)
 
 int clist_iterate(struct clist *list, struct clist_iterator *it, void **data, int step)
 {
+  (void)list;
   if (it->n == NULL)
     return CLIST_FALSE;
 
@@ -248,6 +250,7 @@ int clist_iterate(struct clist *list, struct clist_iterator *it, void **data, in
 }
 
 int clist_post_iterate(struct clist *list, struct clist_iterator *it, void **data, int step) {
+  (void)list;
   if (it->n == NULL)
     return CLIST_FALSE;
 
@@ -342,6 +345,7 @@ void __qs_subproc(struct clist *list, int first, int last) {
 }
 
 int clist_qsort(struct clist *list, enum sort_order order) {
+  (void)order;
   __qs_subproc(list, 0, list->size - 1);
   return CLIST_TRUE;
 }
